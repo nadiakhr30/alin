@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import joblib
+import matplotlib.pyplot as plt
 
 # ==============================
 # KONFIGURASI HALAMAN
@@ -20,6 +21,18 @@ le_marital = joblib.load('le_marital.pkl')
 le_evasion = joblib.load('le_evasion.pkl')
 
 # ==============================
+# SIDEBAR
+# ==============================
+st.sidebar.title("📌 Informasi Model")
+st.sidebar.markdown("**Algoritma:** Gaussian Naive Bayes")
+st.sidebar.markdown("**Jumlah Kelas:** 2 (No, Yes)")
+st.sidebar.metric("Akurasi Model (Test Data)", "66.67%")
+st.sidebar.caption(
+    "Akurasi diperoleh dari evaluasi model "
+    "menggunakan data uji (testing set)."
+)
+
+# ==============================
 # HERO SECTION
 # ==============================
 st.markdown("""
@@ -36,18 +49,18 @@ st.markdown("""
 st.write("")
 
 # ==============================
-# DESKRIPSI APLIKASI
+# DESKRIPSI
 # ==============================
 with st.expander("ℹ️ Tentang Aplikasi"):
     st.write("""
-    Aplikasi ini bertujuan untuk memprediksi **kemungkinan terjadinya Tax Evasion**
-    berdasarkan karakteristik wajib pajak, yaitu:
-    - Status **Refund**
-    - **Status Pernikahan**
-    - **Income**
+    Aplikasi ini digunakan untuk memprediksi **kemungkinan terjadinya Tax Evasion**
+    berdasarkan:
+    - Refund
+    - Status Pernikahan
+    - Income
     
-    Model dibangun menggunakan algoritma **Gaussian Naive Bayes**
-    dan digunakan untuk **kepentingan akademik dan pembelajaran**.
+    Model menggunakan **Gaussian Naive Bayes**
+    dan ditujukan untuk **keperluan akademik**.
     """)
 
 # ==============================
@@ -74,7 +87,6 @@ if submit:
     if income == 0:
         st.warning("⚠️ Income tidak boleh 0")
     else:
-        # Encoding input
         refund_enc = le_refund.transform([refund])[0]
         marital_enc = le_marital.transform([marital])[0]
 
@@ -83,7 +95,6 @@ if submit:
             columns=["Refund", "Marital", "Income"]
         )
 
-        # Prediksi
         prediksi = model.predict(data_input)
         probabilitas = model.predict_proba(data_input)
         hasil = le_evasion.inverse_transform(prediksi)[0]
@@ -91,13 +102,10 @@ if submit:
         st.markdown("---")
         st.subheader("📊 Hasil Prediksi")
 
-        # ==============================
-        # OUTPUT KESIMPULAN
-        # ==============================
         if hasil == "No":
-            st.success("✅ **KESIMPULAN:** Wajib pajak **TIDAK melakukan Tax Evasion**")
+            st.success("✅ **KESIMPULAN:** TIDAK melakukan Tax Evasion")
         else:
-            st.error("⚠️ **KESIMPULAN:** Wajib pajak **BERPOTENSI melakukan Tax Evasion**")
+            st.error("⚠️ **KESIMPULAN:** BERPOTENSI melakukan Tax Evasion")
 
         # ==============================
         # TABEL PROBABILITAS
@@ -110,23 +118,37 @@ if submit:
         st.dataframe(prob_df, use_container_width=True)
 
         # ==============================
-        # GRAFIK PROBABILITAS
+        # BAR CHART
         # ==============================
-        st.markdown("### 📊 Visualisasi Probabilitas")
+        st.markdown("### 📊 Bar Chart Probabilitas")
         chart_df = prob_df.T
         chart_df.columns = ["Probabilitas"]
         st.bar_chart(chart_df)
+
+        # ==============================
+        # PIE CHART
+        # ==============================
+        st.markdown("### 🥧 Pie Chart Probabilitas")
+        fig, ax = plt.subplots()
+        ax.pie(
+            probabilitas[0],
+            labels=le_evasion.classes_,
+            autopct='%1.1f%%',
+            startangle=90
+        )
+        ax.axis('equal')
+        st.pyplot(fig)
 
         # ==============================
         # CONFIDENCE BAR
         # ==============================
         confidence = max(probabilitas[0]) * 100
         st.progress(int(confidence))
-        st.caption(f"Tingkat keyakinan model: **{confidence:.2f}%**")
+        st.caption(f"Tingkat keyakinan prediksi: **{confidence:.2f}%**")
 
         st.info(
-            "Keputusan diambil berdasarkan nilai probabilitas posterior tertinggi "
-            "sesuai prinsip algoritma **Naive Bayes**."
+            "Nilai keyakinan berasal dari probabilitas posterior "
+            "untuk satu data input, bukan akurasi model secara keseluruhan."
         )
 
 # ==============================
