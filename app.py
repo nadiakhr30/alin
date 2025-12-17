@@ -94,6 +94,14 @@ if submit:
     prob_df = pd.DataFrame(probabilitas, columns=le_evasion.classes_)
     st.dataframe(prob_df, use_container_width=True)
 
+    # ==============================
+    # GRAFIK PROBABILITAS
+    # ==============================
+    st.markdown('### 📊 Visualisasi Probabilitas')
+    chart_df = prob_df.T
+    chart_df.columns = ['Probabilitas']
+    st.bar_chart(chart_df)
+
     st.progress(int(max(probabilitas[0]) * 100))
     st.caption(f"Tingkat keyakinan model: {max(probabilitas[0]) * 100:.2f}%")
 
