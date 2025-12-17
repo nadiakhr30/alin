@@ -125,20 +125,7 @@ if submit:
         chart_df.columns = ["Probabilitas"]
         st.bar_chart(chart_df)
 
-        # ==============================
-        # PIE CHART
-        # ==============================
-        st.markdown("### 🥧 Pie Chart Probabilitas")
-        fig, ax = plt.subplots()
-        ax.pie(
-            probabilitas[0],
-            labels=le_evasion.classes_,
-            autopct='%1.1f%%',
-            startangle=90
-        )
-        ax.axis('equal')
-        st.pyplot(fig)
-
+    
         # ==============================
         # CONFIDENCE BAR
         # ==============================
